@@ -7,9 +7,9 @@ namespace BasicReverseProxy.Core.RouteForwarding.Settings
         None,
         Cookie
     }
-    public class RouteMappingSettings
+    public class RouteMappingSettings<T> where T : RouteForwardSettings
     {
         public AuthenticationType AuthenticationType { get; set; } = AuthenticationType.Cookie;
-        public IEnumerable<RouteForwardSettings> Forwards { get; set; }
+        public IEnumerable<T> Forwards { get; set; }
     }
 }

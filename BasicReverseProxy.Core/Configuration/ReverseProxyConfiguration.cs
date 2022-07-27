@@ -12,15 +12,19 @@ namespace BasicReverseProxy.Core.Configuration
 {
     public static class ReverseProxyConfiguration
     {
-        public static IServiceCollection AddReverseProxy(this IServiceCollection services, Action<RouteMappingSettings> setupSettings = null)
+        public static IServiceCollection AddReverseProxy(
+            this IServiceCollection services,
+            Action<RouteMappingSettings<RouteForwardSettings>> setupSettings = null,
+            string routeMappingConfigurationSectionName = "RouteMapping"
+            )
         {
-            var routeMappingSettings = BindRouteMappingSettings(services);
+            var routeMappingSettings = BindRouteMappingSettings(services, routeMappingConfigurationSectionName);
             setupSettings?.Invoke(routeMappingSettings);
 
-            services.AddSingleton(s => routeMappingSettings);
+            services.AddSingleton(_ => routeMappingSettings);
             services.AddSingleton<IReverseProxyService, ReverseProxyService>();
-            services.AddSingleton<IForwardServiceFactory, ForwardServiceFactory>();
-            services.AddSingleton<IRouteForwardManager, RouteForwardManager>();
+            services.AddSingleton<IForwardServiceFactory<RouteForwardSettings>, ForwardServiceFactory<RouteForwardSettings>>();
+            services.AddSingleton<IRouteForwardManager, RouteForwardManager<RouteForwardSettings>>();
             services.AddSingleton<IWebClientFactory, WebClientFactory>();
             services.AddSingleton<IWebClientBuilderFactory, WebClientBuilderFactory>();
 
@@ -37,11 +41,11 @@ namespace BasicReverseProxy.Core.Configuration
             return services;
         }
 
-        private static RouteMappingSettings BindRouteMappingSettings(IServiceCollection services)
+        private static RouteMappingSettings<RouteForwardSettings> BindRouteMappingSettings(IServiceCollection services, string routeMappingConfigurationSectionName)
         {
             var configuration = services.BuildServiceProvider().GetService<IConfiguration>();
-            var routeMappingSettings = new RouteMappingSettings();
-            configuration?.GetSection("RouteMapping").Bind(routeMappingSettings);
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>();
+            configuration?.GetSection(routeMappingConfigurationSectionName).Bind(routeMappingSettings);
             return routeMappingSettings;
         }
 

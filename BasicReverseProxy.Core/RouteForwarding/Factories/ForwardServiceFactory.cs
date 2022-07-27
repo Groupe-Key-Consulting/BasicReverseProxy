@@ -5,12 +5,7 @@ using BasicReverseProxy.Core.RouteForwarding.Settings;
 
 namespace BasicReverseProxy.Core.RouteForwarding.Factories
 {
-    public interface IForwardServiceFactory
-    {
-        IForwarderService CreateForwarderService(RouteForwardSettings routeForwardSettings);
-    }
-
-    public class ForwardServiceFactory : IForwardServiceFactory
+    public class ForwardServiceFactory<T> : IForwardServiceFactory<T> where T : RouteForwardSettings
     {
         private readonly IWebClientFactory _webClientFactory;
 
@@ -21,7 +16,7 @@ namespace BasicReverseProxy.Core.RouteForwarding.Factories
             _webClientFactory = webClientFactory;
         }
 
-        public IForwarderService CreateForwarderService(RouteForwardSettings routeForwardSettings)
+        public virtual IForwarderService CreateForwarderService(T routeForwardSettings)
         {
             var service = CreateForwarderServiceInternal(routeForwardSettings);
 

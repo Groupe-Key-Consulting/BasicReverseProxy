@@ -22,9 +22,9 @@ namespace BasicReverseProxy.Core.Test
     public class ReverseProxyServiceTests
     {
         private IWebClient? _webClientMock;
-        private ILogger<RouteForwardManager>? _loggerRouteForwardManagerMock;
+        private ILogger<RouteForwardManager<RouteForwardSettings>>? _loggerRouteForwardManagerMock;
 
-        private ReverseProxyService GetTestedInstance(RouteMappingSettings routeMappingSettings)
+        private ReverseProxyService GetTestedInstance(RouteMappingSettings<RouteForwardSettings> routeMappingSettings)
         {
             IAuthenticationService authenticationServiceMock = Substitute.For<IAuthenticationService>();
             IWebClientFactory webClientFactoryMock = Substitute.For<IWebClientFactory>();
@@ -33,9 +33,9 @@ namespace BasicReverseProxy.Core.Test
             webClientFactoryMock.CreateWebClient(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(_webClientMock);
 
-            var forwardServiceFactory = new ForwardServiceFactory(webClientFactoryMock);
+            var forwardServiceFactory = new ForwardServiceFactory<RouteForwardSettings>(webClientFactoryMock);
 
-            var routeForwardManager = new RouteForwardManager(_loggerRouteForwardManagerMock, routeMappingSettings,
+            var routeForwardManager = new RouteForwardManager<RouteForwardSettings>(_loggerRouteForwardManagerMock, routeMappingSettings,
                 forwardServiceFactory, authenticationServiceMock);
             return new ReverseProxyService(routeForwardManager);
         }
@@ -44,7 +44,7 @@ namespace BasicReverseProxy.Core.Test
         public void BeforeEachTest()
         {
             _webClientMock = Substitute.For<IWebClient>();
-            _loggerRouteForwardManagerMock = Substitute.For<ILogger<RouteForwardManager>>();
+            _loggerRouteForwardManagerMock = Substitute.For<ILogger<RouteForwardManager<RouteForwardSettings>>>();
 
             _webClientMock.GetAsync(Arg.Any<string>()).Returns(new HttpResponseMessage(HttpStatusCode.OK));
             _webClientMock.DeleteAsync(Arg.Any<string>()).Returns(new HttpResponseMessage(HttpStatusCode.OK));
@@ -86,7 +86,7 @@ namespace BasicReverseProxy.Core.Test
         [Test]
         public async Task Should_call_next_middelware_When_route_is_not_mapped()
         {
-            var service = GetTestedInstance(new RouteMappingSettings());
+            var service = GetTestedInstance(new RouteMappingSettings<RouteForwardSettings>());
 
             var context = Substitute.For<HttpContext>();
             var requestDelegate = Substitute.For<RequestDelegate>();
@@ -97,7 +97,7 @@ namespace BasicReverseProxy.Core.Test
         [Test]
         public async Task Should_not_call_next_middelware_When_route_is_mapped()
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -118,7 +118,7 @@ namespace BasicReverseProxy.Core.Test
         [TestCase("/api/TestUrl")]
         public async Task Should_forward_route_with_get_verb_When_simple_route_is_mapped_with_get_verb(string mappedUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -140,7 +140,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_with_post_verb_When_simple_route_is_mapped_with_post_verb(
             string mappedUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -161,7 +161,7 @@ namespace BasicReverseProxy.Core.Test
         [TestCase("/api/TestUrl")]
         public async Task Should_forward_route_with_put_verb_When_simple_route_is_mapped_with_put_verb(string mappedUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -183,7 +183,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_with_delete_verb_When_simple_route_is_mapped_with_delete_verb(
             string mappedUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -207,7 +207,7 @@ namespace BasicReverseProxy.Core.Test
         [TestCase(HttpVerb.Delete)]
         public async Task Should_forward_route_with_query_params_When_simple_route_is_mapped(HttpVerb httpVerb)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -250,7 +250,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_to_redirect_url_with_get_verb_When_redirect_route_is_mapped(
             HttpVerb mappedVerb, string mappedUrl, string redirectUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -279,7 +279,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_to_redirect_url_with_query_params_When_simple_route_is_mapped(
             HttpVerb httpVerb)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -326,7 +326,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_to_redirect_url_with_post_verb_When_redirect_route_is_mapped(
             HttpVerb mappedVerb, string mappedUrl, string redirectUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -356,7 +356,7 @@ namespace BasicReverseProxy.Core.Test
             Should_forward_route_to_redirect_url_with_post_verb_When_redirect_route_is_mapped_with_form_forward(
                 HttpVerb mappedVerb, string mappedUrl, string redirectUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -388,7 +388,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_to_redirect_url_with_put_verb_When_redirect_route_is_mapped(
             HttpVerb mappedVerb, string mappedUrl, string redirectUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -417,7 +417,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_to_redirect_url_with_delete_verb_When_redirect_route_is_mapped(
             HttpVerb mappedVerb, string mappedUrl, string redirectUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -446,7 +446,7 @@ namespace BasicReverseProxy.Core.Test
         public async Task Should_forward_route_parameters_When_simple_route_is_mapped(HttpVerb mappedVerb,
             string mappedUrl, string receivedUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -492,7 +492,7 @@ namespace BasicReverseProxy.Core.Test
             HttpVerb mappedVerb, string mappedUrl, string receivedUrl, HttpVerb redirectVerb, string redirectUrl,
             string sentUrl)
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -533,7 +533,7 @@ namespace BasicReverseProxy.Core.Test
         [Test]
         public async Task Should_return_unauthorized_When_route_match_but_the_user_has_not_the_role()
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -556,7 +556,7 @@ namespace BasicReverseProxy.Core.Test
         [Test]
         public async Task Should_return_ok_When_route_match_and_the_user_has_the_requested_role()
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {
@@ -580,7 +580,7 @@ namespace BasicReverseProxy.Core.Test
         [Test]
         public async Task Should_return_ok_When_route_match_and_the_user_has_only_one_of_the_requested_roles()
         {
-            var routeMappingSettings = new RouteMappingSettings
+            var routeMappingSettings = new RouteMappingSettings<RouteForwardSettings>
             {
                 Forwards = new[]
                 {

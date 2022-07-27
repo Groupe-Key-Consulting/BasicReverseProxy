@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Routing.Template;
 
 namespace BasicReverseProxy.Core.RouteForwarding
 {
-    internal class RouteForwardMapping
+    internal class RouteForwardMapping<T> where T : RouteForwardSettings
     {
         private readonly TemplateMatcher _templateMatcher;
         private readonly HttpVerb _httpVerb;
-        private readonly RouteForwardSettings _routeForwardSettings;
+        private readonly T _routeForwardSettings;
 
-        public RouteForwardMapping(RouteForwardSettings routeForwardSettings)
+        public RouteForwardMapping(T routeForwardSettings)
         {
             _routeForwardSettings = routeForwardSettings;
             var routeTemplate = TemplateParser.Parse(routeForwardSettings.Url);
@@ -44,22 +44,22 @@ namespace BasicReverseProxy.Core.RouteForwarding
             return null;
         }
 
-        public RouteForwardMappingMatchingResult IsMatch(HttpRequest request)
+        public RouteForwardMappingMatchingResult<T> IsMatch(HttpRequest request)
         {
             var requestHttpVerb = GetHttpVerb(request.Method);
             if (!requestHttpVerb.HasValue)
             {
-                return new RouteForwardMappingMatchingResult {IsMatch = false};
+                return new RouteForwardMappingMatchingResult<T> {IsMatch = false};
             }
 
             if (requestHttpVerb.Value != this._httpVerb)
             {
-                return new RouteForwardMappingMatchingResult { IsMatch = false };
+                return new RouteForwardMappingMatchingResult<T> { IsMatch = false };
             }
 
             var routeValueDictionary = new RouteValueDictionary();
             var isMatch = this._templateMatcher.TryMatch(request.Path.Value, routeValueDictionary);
-            return new RouteForwardMappingMatchingResult
+            return new RouteForwardMappingMatchingResult<T>
                 {IsMatch = isMatch, RouteValueDictionary = routeValueDictionary, Settings = this._routeForwardSettings};
         }
     }

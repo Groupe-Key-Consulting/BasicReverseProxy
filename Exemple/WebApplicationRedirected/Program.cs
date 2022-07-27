@@ -35,6 +35,19 @@ app.MapGet("api/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
+app.MapGet("api/longcall", () =>
+    {
+        Thread.Sleep(TimeSpan.FromSeconds(5));
+        return "It works !";
+    })
+    .WithName("LongCall");
+
+app.MapGet("api/resetlongcall", () =>
+    {
+        return "Call that invalidate LongCall returns in the system";
+    })
+    .WithName("ResetLongCall");
+
 app.Run();
 
 internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary)

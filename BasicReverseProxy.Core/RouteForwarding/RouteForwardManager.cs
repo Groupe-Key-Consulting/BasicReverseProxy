@@ -17,17 +17,17 @@ namespace BasicReverseProxy.Core.RouteForwarding
         Task<ForwardResponseMessage> TryToForwardAsync(HttpContext context);
     }
 
-    public class RouteForwardManager : IRouteForwardManager
+    public class RouteForwardManager<T> : IRouteForwardManager where T : RouteForwardSettings
     {
-        private readonly IForwardServiceFactory _forwardServiceFactory;
-        private readonly IDictionary<string,IEnumerable<RouteForwardMapping>> _indexedMappings = new Dictionary<string, IEnumerable<RouteForwardMapping>>();
+        private readonly IForwardServiceFactory<T> _forwardServiceFactory;
+        private readonly IDictionary<string,IEnumerable<RouteForwardMapping<T>>> _indexedMappings = new Dictionary<string, IEnumerable<RouteForwardMapping<T>>>();
         private readonly IAuthenticationService _authenticationService;
-        private readonly ILogger<RouteForwardManager> _logger;
+        private readonly ILogger<RouteForwardManager<T>> _logger;
 
         public RouteForwardManager(
-            ILogger<RouteForwardManager> logger,
-            RouteMappingSettings routeMappingSettings,
-            IForwardServiceFactory forwardServiceFactory,
+            ILogger<RouteForwardManager<T>> logger,
+            RouteMappingSettings<T> routeMappingSettings,
+            IForwardServiceFactory<T> forwardServiceFactory,
             IAuthenticationService authenticationService)
         {
             _logger = logger;
@@ -37,7 +37,7 @@ namespace BasicReverseProxy.Core.RouteForwarding
             if (routeMappingSettings?.Forwards != null)
             {
                 _indexedMappings = routeMappingSettings.Forwards.GroupBy(r => GetKey(r.Url))
-                    .ToDictionary(g => g.Key, v => v.Select(f => new RouteForwardMapping(f)));
+                    .ToDictionary(g => g.Key, v => v.Select(f => new RouteForwardMapping<T>(f)));
             }
         }
 
